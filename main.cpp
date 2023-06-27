@@ -4,15 +4,15 @@
 #include <vector>
 using namespace std;
 
-#include "src/Spring.hpp"
 #include "src/Joint.hpp"
+#include "src/Spring.hpp"
 #include "src/create_objects.cpp"
 
 //https://www.pdf.inf.usi.ch/papers/bachelor_projects/jacob_salvi.pdf
 
 
-const float initialWidth = 1920.0f;
-const float initialHeight = 1080.0f;
+const double initialWidth = 1920.0f;
+const double initialHeight = 1080.0f;
 
 bool isRunning = true;  // Flag to control the program loop
 
@@ -23,28 +23,24 @@ void windowCloseCallback(GLFWwindow* window) {
 
 
 void display(GLFWwindow* window, int width, int height) {
-    float aspectRatio = (float)width/(float)height;
+    double aspectRatio = (double)width/(double)height;
 
-    std::vector<std::vector<Joint>> joints = createJoints(16);
+    std::vector<std::vector<Joint>> joints = createJoints(4);
     std::vector<Spring> springs = createSprings(joints);
-
 
     glTranslatef(0.0, 0.0, 1.0); // Translate to center of screen
 
-    static float prevTime = glfwGetTime();  // Initialize prevTime with the current time
+    static double prevTime = glfwGetTime();  // Initialize prevTime with the current time
 
-    static float speed = 0.2f;
-
-    float flag = 0.0;
-
+    static double speed = 1.0f;
 
     while (isRunning) {  // Check the flag to continue running the program
         glfwGetWindowSize(window, &width, &height);
 
         glClear(GL_COLOR_BUFFER_BIT); // Clear the color buffer
 
-        float currentTime = glfwGetTime();  // Get the current frame time
-        float deltaTime = speed * (currentTime - prevTime);  // Calculate the time difference
+        double currentTime = glfwGetTime();  // Get the current frame time
+        double deltaTime = speed * (currentTime - prevTime);  // Calculate the time difference
 
         for (auto& row : joints) {
             for (auto& joint : row) {
@@ -61,8 +57,6 @@ void display(GLFWwindow* window, int width, int height) {
             }
         } 
 
-
-
         prevTime = currentTime;  // Update the previous time
 
         glFlush();
@@ -73,14 +67,12 @@ void display(GLFWwindow* window, int width, int height) {
 }
 
 
-
-
 void reshape(int width, int height) {
     glViewport(0, 0, width, height);
     gluOrtho2D(0, width, 0, height);
 
     glMatrixMode(GL_PROJECTION);
-    float aspect = (float)width / (float)height;
+    double aspect = (double)width / (double)height;
     glOrtho(-aspect, aspect, -1, 1, -1, 1);
 
     glMatrixMode(GL_MODELVIEW);

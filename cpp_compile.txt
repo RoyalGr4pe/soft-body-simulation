@@ -1,1 +1,1 @@
-g++ main.cpp -o bin/main -lGL -lGLU -lglut -lglfw
+g++ main.cpp src/Spring.cpp src/Joint.cpp -o bin/main -lGL -lGLU -lglut -lglfw 

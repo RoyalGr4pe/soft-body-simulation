@@ -6,69 +6,49 @@
 #include <iostream>
 #include <math.h>
 
-#include "Joint.hpp"
+// Forward Deceleration to avoid circular import error
+// https://stackoverflow.com/questions/625799/resolve-build-errors-due-to-circular-dependency-amongst-classes
+class Joint;
 
 class Spring {
 private:
-    float length = 0.06;
-    float x1;
-    float y1;
-    float x2;
-    float y2;
-    float k;
-    float id;
+    double PI = 3.141593;
+    double restingLength;
+    double length;
+    double x1;
+    double y1;
+    double x2;
+    double y2;
+    double k;
+    double id;
     int j1ID;
     int j2ID;
     Joint* j1;
     Joint* j2;
 
 public:
-    Spring(float initialX1, float initialY1, float initialX2, float initialY2, float springConstant, Joint* joint1, Joint* joint2, int springID) {
+    Spring(double initialX1, double initialY1, double initialX2, double initialY2, double springConstant, Joint* joint1, Joint* joint2, int springID, double initialLength) {
         x1 = initialX1;
         y1 = initialY1;
         x2 = initialX2;
         y2 = initialY2;
+        restingLength = initialLength;
         k = springConstant;
         id = springID;
         j1 = joint1;
         j2 = joint2;
-        j1ID = j1->getID();
-        j2ID = j2->getID();
     };
-
-    int getID() const {
-        return id;
-    }
-
-    int getJoint1ID() const {
-        return j1ID;
-    }
-
-    int getJoint2ID() const {
-        return j2ID;
-    }
-
-    void update() {
-        x1 = j1->getX();
-        x2 = j2->getX();
-        y1 = j1->getY();
-        y2 = j2->getY();
-    }
-
-    void draw() {
-        glColor3f(1.0f, 1.0f, 1.0f);
-
-        glPushMatrix();
-        glTranslatef(0.0, 0.0, 0.0f);
-
-        glBegin(GL_LINES);
-
-            glVertex2f(x1, y1);
-            glVertex2f(x2, y2);
-        
-        glEnd();
-        glPopMatrix();   
-    }
+    double getDeltaX();
+    double getDeltaY();
+    double getLength();
+    double getSpringForce();
+    int getID() const;
+    int getJoint1ID() const;
+    int getJoint2ID() const;
+    void updateLength();
+    void applyJointIDs();
+    void update();
+    void draw();
 };
 
 #endif

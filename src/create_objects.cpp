@@ -1,4 +1,5 @@
 #include <vector>
+#include <iostream>
 
 #include "Spring.hpp"
 #include "Joint.hpp"
@@ -17,6 +18,7 @@ bool springAlreadyAttached(std::vector<Spring> springs, Joint* joint1, Joint* jo
 
 std::vector<Spring> createSprings(std::vector<std::vector<Joint>>& joints) {
     std::vector<Spring> springs;
+    double restingLength = 0.06;
 
     int springID = 1;
     for (int i = 0; i < joints.size(); i++) { 
@@ -25,14 +27,24 @@ std::vector<Spring> createSprings(std::vector<std::vector<Joint>>& joints) {
             int row = -1;
             int col = -1;
             for (int k = 1; k <= 9; k++) {
-                if (!(row == 0 && col == 0) && (i + row >= 0 && i + row < joints.size()) && (j + col >= 0 && j + col < joints[i].size())) {
+                if ((k != 5) && (i + row >= 0 && i + row < joints.size()) && (j + col >= 0 && j + col < joints[i].size())) {
                     Joint* joint2 = &joints[i + row][j + col];
 
                     if (!springAlreadyAttached(springs, joint1, joint2)) {
-                        Spring spring(joint1->getX(), joint1->getY(), joint2->getX(), joint2->getY(), 5.0f, joint1, joint2, springID);
+                        // Check if spring is diagonal
+                        if (k == 1 || k == 3 || k == 7 || k == 9) {
+                            restingLength = sqrt(2*(0.06 * 0.06));
+                        } else {
+                            restingLength = 0.06;
+                        }
+
+                        Spring spring(joint1->getX(), joint1->getY(), joint2->getX(), joint2->getY(), 5.0, joint1, joint2, springID, restingLength);
+                        spring.applyJointIDs();
                         springs.push_back(spring);
-                        joint1->addSpring(spring.getID());
-                        joint2->addSpring(spring.getID());
+                        
+                        Spring* springPointer = &spring;
+                        joint1->addSpring(springPointer);
+                        joint2->addSpring(springPointer);
                         
                         springID++;
                     }
@@ -46,6 +58,7 @@ std::vector<Spring> createSprings(std::vector<std::vector<Joint>>& joints) {
             }
         }
     }
+    std::cout << springs.size();
     return springs;
 }
 
