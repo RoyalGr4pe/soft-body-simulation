@@ -1,8 +1,6 @@
 #ifndef SPRING_H
 #define SPRING_H
 
-#include <GL/glut.h>
-#include <GLFW/glfw3.h>
 #include <iostream>
 #include <math.h>
 
@@ -12,7 +10,7 @@ class Joint;
 
 class Spring {
 private:
-    double PI = 3.141593;
+    static constexpr double PI = 3.141593;
     double restingLength;
     double length;
     double x1;
@@ -32,23 +30,24 @@ public:
         y1 = initialY1;
         x2 = initialX2;
         y2 = initialY2;
-        restingLength = initialLength;
         k = springConstant;
         id = springID;
         j1 = joint1;
         j2 = joint2;
+        restingLength = initialLength;
     };
     double getDeltaX();
     double getDeltaY();
     double getLength();
     double getSpringForce();
+    double getTest();
     int getID() const;
     int getJoint1ID() const;
     int getJoint2ID() const;
     void updateLength();
     void applyJointIDs();
     void update();
-    void draw();
+    void render();
 };
 
 #endif

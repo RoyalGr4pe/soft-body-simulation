@@ -1,9 +1,16 @@
 #include "Joint.hpp"
 #include "Spring.hpp"
 
+#include <GL/glut.h>
+#include <GLFW/glfw3.h>
+
 
 void Joint::addSpring(Spring* spring) {
     springs.push_back(spring);
+}
+
+void Joint::setXBoundary(double aspectRatio) {
+    aR = aspectRatio;
 }
 
 double Joint::getMass() const {
@@ -22,14 +29,14 @@ double Joint::getY() const {
     return y;
 }
 
-void Joint::calculateForceOnJoint() {
+void Joint::calculateForceOnJoint(double deltaTime) {
     for (auto& spring : springs) {
-        double force = spring->getSpringForce();
         double springLength = spring->getLength();
+        double force = spring->getSpringForce();
 
-        if (springLength != 0.0f) {
-            fx += force * (spring->getDeltaX() / springLength);
-            fy += force * (spring->getDeltaY() / springLength);
+        if (springLength != 0.0) {
+            fx += force * deltaTime * (spring->getDeltaX() / springLength);
+            fy += force * deltaTime * (spring->getDeltaY() / springLength);
         }
     }
 }
@@ -82,18 +89,15 @@ void Joint::boundaryCheck() {
     }
 }
 
-void Joint::update(double deltaTime, double aspectRatio) {
-    aR = aspectRatio;
-    fx = 0.0f;
-    fy = 0.0f;
+void Joint::update(double deltaTime) {
     boundaryCheck();
-    calculateForceOnJoint();
+    calculateForceOnJoint(deltaTime);
     updateAcceleration(deltaTime);
     updateVelocity(deltaTime);
     updatePosition(deltaTime);
 }
 
-void Joint::draw() {
+void Joint::render() {
     glPushMatrix();
     glTranslatef(x, y, 0.0f);
 

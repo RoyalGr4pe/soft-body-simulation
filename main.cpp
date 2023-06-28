@@ -4,8 +4,8 @@
 #include <vector>
 using namespace std;
 
-#include "src/Joint.hpp"
 #include "src/Spring.hpp"
+#include "src/Joint.hpp"
 #include "src/create_objects.cpp"
 
 //https://www.pdf.inf.usi.ch/papers/bachelor_projects/jacob_salvi.pdf
@@ -21,18 +21,35 @@ void windowCloseCallback(GLFWwindow* window) {
     isRunning = false;  // Set the flag to false when the window is closed
 }
 
+struct ProgramState {
+    double prevTime;
+    double speed;
+};
 
-void display(GLFWwindow* window, int width, int height) {
-    double aspectRatio = (double)width/(double)height;
+void updateJointsAndSprings(std::vector<std::vector<Joint>>& joints, std::vector<Spring*>& springs, double deltaTime) {
+    for (auto& row : joints) {
+        for (auto& joint : row) {
+            joint.update(deltaTime);
+        }
+    }
+    for (auto& spring : springs) {
+        spring->update();
+    }
+}
 
-    std::vector<std::vector<Joint>> joints = createJoints(4);
-    std::vector<Spring> springs = createSprings(joints);
+void renderJointsAndSprings(std::vector<std::vector<Joint>>& joints, std::vector<Spring*>& springs) {
+    for (auto& spring : springs) {
+        spring->render();
+    }
+    for (auto& row : joints) {
+        for (auto& joint : row) {
+            joint.render();
+        }
+    }
+}
 
+void display(GLFWwindow* window, int width, int height, ProgramState& state, std::vector<std::vector<Joint>>& joints, std::vector<Spring*>& springs) {
     glTranslatef(0.0, 0.0, 1.0); // Translate to center of screen
-
-    static double prevTime = glfwGetTime();  // Initialize prevTime with the current time
-
-    static double speed = 1.0f;
 
     while (isRunning) {  // Check the flag to continue running the program
         glfwGetWindowSize(window, &width, &height);
@@ -40,24 +57,12 @@ void display(GLFWwindow* window, int width, int height) {
         glClear(GL_COLOR_BUFFER_BIT); // Clear the color buffer
 
         double currentTime = glfwGetTime();  // Get the current frame time
-        double deltaTime = speed * (currentTime - prevTime);  // Calculate the time difference
+        double deltaTime = state.speed * (currentTime - state.prevTime);  // Calculate the time difference
 
-        for (auto& row : joints) {
-            for (auto& joint : row) {
-                joint.update(deltaTime, aspectRatio);
-            }
-        } 
-        for (auto& spring : springs) {
-            spring.update();
-            spring.draw();
-        } 
-        for (auto& row : joints) {
-            for (auto& joint : row) {
-                joint.draw();
-            }
-        } 
+        updateJointsAndSprings(joints, springs, deltaTime);
+        renderJointsAndSprings(joints, springs);
 
-        prevTime = currentTime;  // Update the previous time
+        state.prevTime = currentTime;  // Update the previous time
 
         glFlush();
         glfwSwapBuffers(window);  // Swap the front and back buffers
@@ -104,6 +109,7 @@ int main(int argc, char** argv) {
     int width, height;
     glfwGetWindowSize(window, &width, &height);
     reshape(width, height);
+    double aspectRatio = (double)width/(double)height;
     
     int rgbRed = 42;
     int rgbGreen = 75;
@@ -113,8 +119,15 @@ int main(int argc, char** argv) {
     // Background colour
     glClearColor(rgbRed/256.0, rgbGreen/256.0, rgbBlue/256.0, 1.0f);
 
+    ProgramState state;
+    state.prevTime = glfwGetTime();
+    state.speed = 1.0;
+
+    std::vector<std::vector<Joint>> joints = createJoints(4, aspectRatio);
+    std::vector<Spring*> springs = createSprings(joints);
+
     while (!glfwWindowShouldClose(window)) {
-        display(window, width, height);
+        display(window, width, height, state, joints, springs);
 
         // Swap front and back buffers
         glfwSwapBuffers(window);

@@ -5,65 +5,67 @@
 #include "Joint.hpp"
 
 
-bool springAlreadyAttached(std::vector<Spring> springs, Joint* joint1, Joint* joint2) {
+bool springAlreadyAttached(std::vector<Spring*> springs, Joint* joint1, Joint* joint2) {
     // Check if the spring already exists between joint1 and joint2
     for (const auto& spring : springs) {
-        if ((spring.getJoint1ID() == joint1->getID() && spring.getJoint2ID() == joint2->getID())
-            || (spring.getJoint1ID() == joint2->getID() && spring.getJoint2ID() == joint1->getID())) {
+        if ((spring->getJoint1ID() == joint1->getID() && spring->getJoint2ID() == joint2->getID())
+            || (spring->getJoint1ID() == joint2->getID() && spring->getJoint2ID() == joint1->getID())) {
             return true;
         }
     }
     return false;
 }
 
-std::vector<Spring> createSprings(std::vector<std::vector<Joint>>& joints) {
-    std::vector<Spring> springs;
-    double restingLength = 0.06;
 
+bool isValidJointIndex(std::vector<std::vector<Joint>>& joints, int row, int col) {
+    return row >= 0 && row < joints.size() && col >= 0 && col < joints[row].size();
+}
+
+
+std::vector<Spring*> createSprings(std::vector<std::vector<Joint>>& joints) {
+    std::vector<Spring*> springs;
+    
     int springID = 1;
     for (int i = 0; i < joints.size(); i++) { 
         for (int j = 0; j < joints[i].size(); j++) {
             Joint* joint1 = &joints[i][j];
-            int row = -1;
-            int col = -1;
-            for (int k = 1; k <= 9; k++) {
-                if ((k != 5) && (i + row >= 0 && i + row < joints.size()) && (j + col >= 0 && j + col < joints[i].size())) {
-                    Joint* joint2 = &joints[i + row][j + col];
 
-                    if (!springAlreadyAttached(springs, joint1, joint2)) {
-                        // Check if spring is diagonal
-                        if (k == 1 || k == 3 || k == 7 || k == 9) {
-                            restingLength = sqrt(2*(0.06 * 0.06));
-                        } else {
-                            restingLength = 0.06;
-                        }
+            // Define relative positions of neighboring joints
+            std::vector<std::pair<int, int>> neighborOffsets = {
+                {-1, -1}, {-1, 0}, {-1, 1},
+                {0,  -1},          {0,  1},
+                {1,  -1}, {1,  0}, {1,  1}
+            };
 
-                        Spring spring(joint1->getX(), joint1->getY(), joint2->getX(), joint2->getY(), 5.0, joint1, joint2, springID, restingLength);
-                        spring.applyJointIDs();
-                        springs.push_back(spring);
-                        
-                        Spring* springPointer = &spring;
-                        joint1->addSpring(springPointer);
-                        joint2->addSpring(springPointer);
-                        
-                        springID++;
-                    }
-                }
-                if (col < 1) {
-                    col += 1;
-                } else if (col == 1) {
-                    col = -1;
-                    row += 1;
+            for (const auto& offset : neighborOffsets) {
+                int row = i + offset.first;
+                int col = j + offset.second;
+                double restingLength = 0.06;
+
+                Joint* joint2 = &joints[row][col];
+
+                if (isValidJointIndex(joints, row, col) && !springAlreadyAttached(springs, joint1, joint2)) {
+                    // Increase the restingLength if the spring is a diagonal
+                    restingLength = (offset.first == 0 || offset.second == 0) ? restingLength : sqrt(2.0 * restingLength * restingLength); 
+
+                    Spring* spring = new Spring(joint1->getX(), joint1->getY(), joint2->getX(), joint2->getY(), .005, joint1, joint2, springID, restingLength);
+                    spring->applyJointIDs();
+
+                    joint1->addSpring(spring);
+                    joint2->addSpring(spring);
+                    spring->update();
+                    
+                    springs.push_back(spring);
+                    springID++;
                 }
             }
         }
     }
-    std::cout << springs.size();
     return springs;
 }
 
 
-std::vector<std::vector<Joint>> createJoints(int numJoints) {
+std::vector<std::vector<Joint>> createJoints(int numJoints, double aspectRatio) {
 
     /*
     The number of rows and columns should be as close to each other as possible
@@ -92,6 +94,7 @@ std::vector<std::vector<Joint>> createJoints(int numJoints) {
         std::vector<Joint> joints;
         for (int j = 1; j <= columns; j++) {
             Joint joint(x0, y0, 0.1, 0.01, jointID);
+            joint.setXBoundary(aspectRatio);
             joints.push_back(joint);
             x0 += springLength;
             jointID++;

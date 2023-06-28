@@ -1,7 +1,10 @@
 #include "Spring.hpp"
 #include "Joint.hpp"
 
+#include <GL/glut.h>
+#include <GLFW/glfw3.h>
 #include <cmath>
+#include <iostream>
 
 
 void Spring::applyJointIDs() {
@@ -23,9 +26,9 @@ double Spring::getLength() {
     return length;
 }
 
-double Spring::getSpringForce() {   
+double Spring::getSpringForce() { 
     double e = length - restingLength;
-    double force = -k * e;
+    double force = k * e;
     return force;
 }
 
@@ -45,21 +48,17 @@ void Spring::updateLength() {
     double dx = getDeltaX();
     double dy = getDeltaY();
     length = sqrt((dx * dx) + (dy * dy));
-    if (length < pow(1.0, -10)) {
-        length = 0.0f;
-    }
 }
 
 void Spring::update() {
     x1 = j1->getX();
-    x2 = j2->getX();
     y1 = j1->getY();
+    x2 = j2->getX();
     y2 = j2->getY();
     updateLength();
-    getSpringForce();
 }
 
-void Spring::draw() {
+void Spring::render() {
     glColor3f(1.0f, 1.0f, 1.0f);
 
     glPushMatrix();
