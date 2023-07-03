@@ -1,6 +1,8 @@
 #ifndef JOINT_H
 #define JOINT_H
 
+#include "Boundary.hpp"
+
 #include <iostream>
 #include <vector>
 #include <math.h>
@@ -12,16 +14,18 @@ class Spring;
 
 class Joint {
 private:
-    double x;
-    double y;
     double mass;
     double radius;
-    double vx;
-    double vy;
-    double ax;
-    double ay;
+    double x;
+    double y;
+    double vx = 0.0;
+    double vy = 0.0;
+    double ax = 0.0;
+    double ay = 0.0;
     double fx;
     double fy;
+    double fr = 0.0;
+    double fg;
     double aR;
     int id;
     int red = 255;
@@ -32,6 +36,7 @@ private:
     const double theta = 2.0 * PI / numSegments;
     const double g = -9.81;
     std::vector<Spring*> springs;
+    boundaryCoordinates boundary;
 
 public:
     Joint(double initialX, double initialY, double jointMass, double jointRadius, int jointID) {
@@ -41,21 +46,28 @@ public:
         radius = jointRadius;
         id = jointID;
     };
-    void addSpring(Spring* spring);
-    void setXBoundary(double aspectRatio);
-    double getMass() const;
-    int getID() const;
-    double getX() const;
-    double getY() const;
+    void update(double dt);
+    void render();
+
     void boundaryCheck();
-    void calculateForceOnJoint(double deltaTime);
-    void updatePosition(double deltaTime);
-    void updateVelocity(double deltaTime);
-    void updateAcceleration(double deltaTime);
+    void calculateForceOnJoint(double dt);
+    void updatePosition(double dt);
+    void updateVelocity(double dt);
+    void updateAcceleration(double dt);
     bool hitBoundaryY();
     bool hitBoundaryX();
-    void update(double deltaTime);
-    void render();
+
+    int getID() const;
+    double getMass() const;
+    double getX() const;
+    double getY() const;
+    double getVX() const;
+    double getVY() const;
+
+    void setGravitionalForce();
+    void setSpring(Spring* spring);
+    void setX(double dx);
+    void setY(double dy);
 };
 
 

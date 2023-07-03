@@ -1,6 +1,8 @@
 #ifndef SPRING_H
 #define SPRING_H
 
+#include "Boundary.hpp"
+
 #include <iostream>
 #include <math.h>
 
@@ -8,10 +10,11 @@
 // https://stackoverflow.com/questions/625799/resolve-build-errors-due-to-circular-dependency-amongst-classes
 class Joint;
 
+
 class Spring {
 private:
-    static constexpr double PI = 3.141593;
     double restingLength;
+    double minimumLength = 1.0;
     double length;
     double x1;
     double y1;
@@ -23,6 +26,7 @@ private:
     int j2ID;
     Joint* j1;
     Joint* j2;
+    boundaryCoordinates boundary;
 
 public:
     Spring(double initialX1, double initialY1, double initialX2, double initialY2, double springConstant, Joint* joint1, Joint* joint2, int springID, double initialLength) {
@@ -36,18 +40,24 @@ public:
         j2 = joint2;
         restingLength = initialLength;
     };
+    void update();
+    void render();
+
+    void updateLength();
+    double calculateSpringForce();
+
     double getDeltaX();
     double getDeltaY();
     double getLength();
-    double getSpringForce();
+    double getRestingLength();
+    double getMinimumLength();
     double getTest();
     int getID() const;
     int getJoint1ID() const;
     int getJoint2ID() const;
-    void updateLength();
-    void applyJointIDs();
-    void update();
-    void render();
+
+    void setJointIDs();
+    void setSpringLength(double newLength);
 };
 
 #endif

@@ -11,9 +11,6 @@ using namespace std;
 //https://www.pdf.inf.usi.ch/papers/bachelor_projects/jacob_salvi.pdf
 
 
-const double initialWidth = 1920.0f;
-const double initialHeight = 1080.0f;
-
 bool isRunning = true;  // Flag to control the program loop
 
 
@@ -26,10 +23,10 @@ struct ProgramState {
     double speed;
 };
 
-void updateJointsAndSprings(std::vector<std::vector<Joint>>& joints, std::vector<Spring*>& springs, double deltaTime) {
+void updateJointsAndSprings(std::vector<std::vector<Joint*>>& joints, std::vector<Spring*>& springs, double dt) {
     for (auto& row : joints) {
         for (auto& joint : row) {
-            joint.update(deltaTime);
+            joint->update(dt);
         }
     }
     for (auto& spring : springs) {
@@ -37,18 +34,18 @@ void updateJointsAndSprings(std::vector<std::vector<Joint>>& joints, std::vector
     }
 }
 
-void renderJointsAndSprings(std::vector<std::vector<Joint>>& joints, std::vector<Spring*>& springs) {
+void renderJointsAndSprings(std::vector<std::vector<Joint*>>& joints, std::vector<Spring*>& springs) {
     for (auto& spring : springs) {
         spring->render();
     }
     for (auto& row : joints) {
         for (auto& joint : row) {
-            joint.render();
+            joint->render();
         }
     }
 }
 
-void display(GLFWwindow* window, int width, int height, ProgramState& state, std::vector<std::vector<Joint>>& joints, std::vector<Spring*>& springs) {
+void display(GLFWwindow* window, int width, int height, ProgramState& state, std::vector<std::vector<Joint*>>& joints, std::vector<Spring*>& springs) {
     glTranslatef(0.0, 0.0, 1.0); // Translate to center of screen
 
     while (isRunning) {  // Check the flag to continue running the program
@@ -57,9 +54,9 @@ void display(GLFWwindow* window, int width, int height, ProgramState& state, std
         glClear(GL_COLOR_BUFFER_BIT); // Clear the color buffer
 
         double currentTime = glfwGetTime();  // Get the current frame time
-        double deltaTime = state.speed * (currentTime - state.prevTime);  // Calculate the time difference
+        double dt = state.speed * (currentTime - state.prevTime);  // Calculate the time difference
 
-        updateJointsAndSprings(joints, springs, deltaTime);
+        updateJointsAndSprings(joints, springs, dt);
         renderJointsAndSprings(joints, springs);
 
         state.prevTime = currentTime;  // Update the previous time
@@ -91,6 +88,8 @@ int main(int argc, char** argv) {
         return -1;
     }
 
+    const double initialWidth = 1920.0f;
+    const double initialHeight = 1080.0f;
     // Create a GLFW window
     GLFWwindow* window = glfwCreateWindow(initialWidth, initialHeight, "Soft Body Simulator", NULL, NULL);
     if (!window) {
@@ -121,9 +120,11 @@ int main(int argc, char** argv) {
 
     ProgramState state;
     state.prevTime = glfwGetTime();
-    state.speed = 1.0;
+    state.speed = 2.0f;
 
-    std::vector<std::vector<Joint>> joints = createJoints(4, aspectRatio);
+    const int numberOfJoints = 4;
+
+    std::vector<std::vector<Joint*>> joints = createJoints(numberOfJoints);
     std::vector<Spring*> springs = createSprings(joints);
 
     while (!glfwWindowShouldClose(window)) {
